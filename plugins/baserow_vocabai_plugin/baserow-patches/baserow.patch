@@ -330,3 +330,16 @@ index 065c1e34e..5ba1f791b 100644
    meta: [
      { charset: 'utf-8' },
      {
+diff --git a/web-frontend/modules/core/plugins/posthog.js b/web-frontend/modules/core/plugins/posthog.js
+index 0253b8649..5f3c243d5 100644
+--- a/web-frontend/modules/core/plugins/posthog.js
++++ b/web-frontend/modules/core/plugins/posthog.js
+@@ -31,7 +31,7 @@ export default function ({ app: { router, $config, store } }, inject) {
+       // have changed accounts. This keeps the Posthog code isolated from the
+       // authenticated system.
+       if (isAuthenticated && userId !== posthog.get_distinct_id()) {
+-        posthog.identify(userId, { user_email: userEmail })
++        posthog.identify(userEmail, { user_email: userEmail })
+       }
+ 
+       // Note: this might also be a good place to call posthog.register(...) in
