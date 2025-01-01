@@ -127,9 +127,18 @@ index 9ccb2dc90..3d6a3c41b 100755
      def iat_before_last_password_change(self, iat: int) -> bool:
          """
 diff --git a/backend/src/baserow/core/posthog.py b/backend/src/baserow/core/posthog.py
-index 5529ba3b1..e60857e8b 100644
+index 5529ba3b1..d0c0ebb19 100644
 --- a/backend/src/baserow/core/posthog.py
 +++ b/backend/src/baserow/core/posthog.py
+@@ -29,7 +29,7 @@ def capture_event(distinct_id: str, event: str, properties: dict):
+     try:
+         posthog.capture(
+             distinct_id=distinct_id,
+-            event=event,
++            event=f'baserow:{event}',
+             properties=properties,
+         )
+     except Exception as e:
 @@ -68,7 +68,7 @@ def capture_user_event(
      if workspace is not None:
          properties["workspace_id"] = workspace.id
