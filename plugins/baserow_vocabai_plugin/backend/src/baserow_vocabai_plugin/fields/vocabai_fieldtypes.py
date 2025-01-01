@@ -111,7 +111,7 @@ class TransformationFieldType(FieldType):
             logger.info(f'admin_user: {admin_user.user}')
             return admin_user.user.id
 
-        logger.error(f'admin user not found in group {group} workspace.id: {workspace.id}')
+        logger.error(f'admin user not found in workspace {workspace} workspace.id: {workspace.id}')
         return None
 
     def process_transformation(self, field, starting_row):
@@ -605,9 +605,9 @@ class ChineseRomanizationFieldType(TransformationFieldType):
         logger.info('transform_field')
         romanization_choices = []
         if field.transformation == CHOICE_PINYIN:
-            result =  clt_interface.get_pinyin(source_value, field.tone_numbers, field.spaces)
+            result =  clt_interface.get_pinyin(source_value, field.tone_numbers, field.spaces, usage_user_id)
         elif field.transformation == CHOICE_JYUTPING:
-            result =  clt_interface.get_jyutping(source_value, field.tone_numbers, field.spaces)
+            result =  clt_interface.get_jyutping(source_value, field.tone_numbers, field.spaces, usage_user_id)
         return result
 
     def get_export_value(

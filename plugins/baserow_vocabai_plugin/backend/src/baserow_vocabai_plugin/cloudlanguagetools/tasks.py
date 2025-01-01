@@ -189,9 +189,9 @@ def run_clt_chinese_romanization_all_rows(self, table_id, romanization_type, ton
                 text = getattr(row, source_field_id)
                 if text != None and len(text) > 0:
                     if romanization_type == CHOICE_PINYIN:
-                        result = clt_interface.get_pinyin(text, tone_numbers, spaces)
+                        result = clt_interface.get_pinyin(text, tone_numbers, spaces, usage_user_id)
                     elif romanization_type == CHOICE_JYUTPING:
-                        result = clt_interface.get_jyutping(text, tone_numbers, spaces)
+                        result = clt_interface.get_jyutping(text, tone_numbers, spaces, usage_user_id)
                     logger.debug(f'computed romanization: {pprint.pformat(result)}')
                     setattr(row, target_field_id, result)
                     row.save()        
