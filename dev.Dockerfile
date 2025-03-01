@@ -1,7 +1,7 @@
 # This a dev image for testing your plugin when installed into the Baserow all-in-one image
 
 # this base image should always get overriden by a specific version
-ARG BASE_BASEROW_CLT_IMAGE=lucwastiaux/baserow-clt:1.26.0-11.3.2-a
+ARG BASE_BASEROW_CLT_IMAGE=vocabai/baserow-clt:1.26.0-11.3.2-a
 FROM ${BASE_BASEROW_CLT_IMAGE} AS base
 FROM ${BASE_BASEROW_CLT_IMAGE}
 

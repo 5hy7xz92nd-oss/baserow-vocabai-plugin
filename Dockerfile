@@ -1,7 +1,7 @@
-# docker build -t lucwastiaux/baserow-vocabai-plugin:20220910-1 -f Dockerfile .
-# docker push lucwastiaux/baserow-vocabai-plugin:20220910-1
+# docker build -t vocabai/baserow-vocabai-plugin:20220910-1 -f Dockerfile .
+# docker push vocabai/baserow-vocabai-plugin:20220910-1
 
-ARG BASE_BASEROW_CLT_IMAGE=lucwastiaux/baserow-clt:1.26.1-11.3.2-a
+ARG BASE_BASEROW_CLT_IMAGE=vocabai/baserow-clt:1.26.1-11.3.2-a
 FROM ${BASE_BASEROW_CLT_IMAGE}
 
 ARG SENTRY_RELEASE

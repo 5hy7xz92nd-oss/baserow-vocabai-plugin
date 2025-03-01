@@ -14,5 +14,5 @@ git push origin ${GIT_TAG}
 docker build \
 --build-arg SENTRY_RELEASE=${SENTRY_RELEASE} \
 --build-arg BASE_BASEROW_CLT_IMAGE=${BASE_BASEROW_CLT_IMAGE} \
--t lucwastiaux/baserow-vocabai-plugin:${VERSION_NUMBER} -f Dockerfile .
-docker push lucwastiaux/baserow-vocabai-plugin:${VERSION_NUMBER}
+-t vocabai/baserow-vocabai-plugin:${VERSION_NUMBER} -f Dockerfile .
+docker push vocabai/baserow-vocabai-plugin:${VERSION_NUMBER}
