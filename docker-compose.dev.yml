@@ -26,6 +26,8 @@ services:
     environment:
       SENTRY_ENVIRONMENT: development
       BASEROW_PUBLIC_URL: ${BASEROW_PUBLIC_URL}
+      # sentry
+      SENTRY_BACKEND_DSN: ${SENTRY_BACKEND_DSN}
       # database setup:
       DATABASE_HOST: ${DATABASE_HOST}
       DATABASE_USER: ${DATABASE_USER}
