@@ -1,15 +1,15 @@
 diff --git a/.bash_aliases b/.bash_aliases
 new file mode 100644
-index 000000000..6b9388548
+index 000000000..815c67c18
 --- /dev/null
 +++ b/.bash_aliases
 @@ -0,0 +1 @@
-+alias regenerate_baserow_patch='git diff baserow-1.26.1..baserow-vocabai-patch-1.26.1 | sed "s:/:/:g" > ~/python/baserow-vocabai-plugin/plugins/baserow_vocabai_plugin/baserow-patches/baserow.patch'
++alias regenerate_baserow_patch='git diff baserow-1.33.4..baserow-vocabai-patch-1.33.4 | sed "s:/:/:g" > ~/python/baserow-vocabai-plugin/plugins/baserow_vocabai_plugin/baserow-patches/baserow.patch'
 diff --git a/backend/docker/docker-entrypoint.sh b/backend/docker/docker-entrypoint.sh
-index 96d351071..318c03638 100755
+index aa6e1cb5c..bfa80a22a 100755
 --- a/backend/docker/docker-entrypoint.sh
 +++ b/backend/docker/docker-entrypoint.sh
-@@ -384,6 +384,11 @@ case "$1" in
+@@ -390,6 +390,11 @@ case "$1" in
        echo "Running celery export worker healthcheck..."
        exec celery -A baserow inspect ping -d "export-worker@$HOSTNAME" -t 10 "${@:2}"
      ;;
@@ -22,7 +22,7 @@ index 96d351071..318c03638 100755
        # Delay the beat startup as there seems to be bug where the other celery workers
        # starting up interfere with or break the lock obtained by it. Without this the
 diff --git a/backend/pytest.ini b/backend/pytest.ini
-index e316a805f..92dd72cf7 100644
+index 082f2c2cd..a20409be3 100644
 --- a/backend/pytest.ini
 +++ b/backend/pytest.ini
 @@ -1,7 +1,7 @@
@@ -35,10 +35,10 @@ index e316a805f..92dd72cf7 100644
      SECRET_KEY = test
      BASEROW_JWT_SIGNING_KEY = test
 diff --git a/backend/src/baserow/config/settings/base.py b/backend/src/baserow/config/settings/base.py
-index 26341bb3c..e9dadf171 100644
+index dc121dd86..ed0452d80 100644
 --- a/backend/src/baserow/config/settings/base.py
 +++ b/backend/src/baserow/config/settings/base.py
-@@ -8,6 +8,7 @@ from decimal import Decimal
+@@ -7,6 +7,7 @@ from decimal import Decimal
  from ipaddress import ip_network
  from pathlib import Path
  from urllib.parse import urljoin, urlparse
@@ -46,55 +46,7 @@ index 26341bb3c..e9dadf171 100644
  
  from django.core.exceptions import ImproperlyConfigured
  
-@@ -44,6 +45,47 @@ class Everything(object):
- if "*" in FEATURE_FLAGS or "pytest" in sys.modules:
-     FEATURE_FLAGS = Everything()
- 
-+# sentry setup
-+# ============
-+
-+import sentry_sdk
-+from sentry_sdk.integrations.django import DjangoIntegration
-+from sentry_sdk.integrations.celery import CeleryIntegration
-+
-+def traces_sampler(sampling_context):
-+    # this one appears very frequently
-+    if sampling_context.get('asgi_scope', {}).get('path', None) in ['/_health/', '/api/_health/']:
-+        return 0.001
-+        
-+    # the following are quite frequent
-+    celery_task_name = sampling_context.get('celery_job', {}).get('task', None)
-+    if celery_task_name in [
-+        'baserow.core.jobs.tasks.clean_up_jobs',
-+        'baserow.core.action.tasks.cleanup_old_actions',
-+        'baserow.core.trash.tasks.mark_old_trash_for_permanent_deletion',
-+        'baserow.core.trash.tasks.permanently_delete_marked_trash',
-+        'baserow.contrib.database.export.tasks.clean_up_old_jobs',
-+        'baserow.core.notifications.tasks.beat_send_instant_notifications_summary_by_email',
-+        'baserow.core.notifications.tasks.singleton_send_instant_notifications_summary_by_email',
-+        'baserow.contrib.database.search.tasks.async_update_tsvector_columns',
-+        'baserow.ws.tasks.broadcast_to_permitted_users'
-+    ]:
-+        return 0.05
-+
-+    # if more information is needed about transactions, uncomment the following
-+    #pprint.pprint(sampling_context, width=2000, compact=True)
-+    return 0.5
-+
-+sentry_sdk.init(
-+    dsn="https://f7a7fa7dfe5f412f852c3bfe2defa091@o968582.ingest.sentry.io/6742581",
-+    integrations=[DjangoIntegration(signals_spans=False, middleware_spans=False), CeleryIntegration()],
-+    send_default_pii=True,
-+    traces_sampler=traces_sampler,
-+)
-+
-+# sentry setup end
-+# ================
-+
- BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
- 
- BASEROW_PLUGIN_DIR_PATH = Path(os.environ.get("BASEROW_PLUGIN_DIR", "/baserow/plugins"))
-@@ -175,6 +217,8 @@ CELERY_TASK_ROUTES = {
+@@ -181,6 +182,8 @@ CELERY_TASK_ROUTES = {
      "baserow.core.usage.tasks": {"queue": BASEROW_GROUP_STORAGE_USAGE_QUEUE},
      "baserow.contrib.database.table.tasks.run_row_count_job": {"queue": "export"},
      "baserow.core.jobs.tasks.clean_up_jobs": {"queue": "export"},
@@ -103,7 +55,7 @@ index 26341bb3c..e9dadf171 100644
  }
  CELERY_SOFT_TIME_LIMIT = 60 * 5  # 5 minutes
  CELERY_TIME_LIMIT = CELERY_SOFT_TIME_LIMIT + 60  # 60 seconds
-@@ -226,6 +270,9 @@ else:
+@@ -232,6 +235,9 @@ else:
              "PASSWORD": os.getenv("DATABASE_PASSWORD", "baserow"),
              "HOST": os.getenv("DATABASE_HOST", "db"),
              "PORT": os.getenv("DATABASE_PORT", "5432"),
@@ -114,23 +66,23 @@ index 26341bb3c..e9dadf171 100644
      }
      if "DATABASE_OPTIONS" in os.environ:
 diff --git a/backend/src/baserow/core/models.py b/backend/src/baserow/core/models.py
-index 9ccb2dc90..3d6a3c41b 100755
+index bf7ec4373..a4a0d16ca 100755
 --- a/backend/src/baserow/core/models.py
 +++ b/backend/src/baserow/core/models.py
-@@ -208,7 +208,7 @@ class UserProfile(models.Model):
+@@ -216,7 +216,7 @@ class UserProfile(models.Model):
      # TODO Remove null=True in a future release.
      email_verified = models.BooleanField(null=True, default=False)
      # TODO Remove null=True in a future release.
 -    completed_onboarding = models.BooleanField(null=True, default=False)
 +    completed_onboarding = models.BooleanField(null=True, default=True)
- 
-     def iat_before_last_password_change(self, iat: int) -> bool:
-         """
+     completed_guided_tours = ArrayField(
+         base_field=models.TextField(),
+         default=list,
 diff --git a/backend/src/baserow/core/posthog.py b/backend/src/baserow/core/posthog.py
-index 5529ba3b1..d0c0ebb19 100644
+index 42f7ea5c8..1e95c3dea 100644
 --- a/backend/src/baserow/core/posthog.py
 +++ b/backend/src/baserow/core/posthog.py
-@@ -29,7 +29,7 @@ def capture_event(distinct_id: str, event: str, properties: dict):
+@@ -30,7 +30,7 @@ def capture_event(distinct_id: str, event: str, properties: dict):
      try:
          posthog.capture(
              distinct_id=distinct_id,
@@ -139,20 +91,20 @@ index 5529ba3b1..d0c0ebb19 100644
              properties=properties,
          )
      except Exception as e:
-@@ -68,7 +68,7 @@ def capture_user_event(
+@@ -77,7 +77,7 @@ def capture_user_event(
      if workspace is not None:
          properties["workspace_id"] = workspace.id
  
--    capture_event(user.id, event, properties)
+-    capture_event(user_id, event, properties)
 +    capture_event(user.email, event, properties)
  
  
  @receiver(action_done)
 diff --git a/supervisor/default_baserow_env.sh b/supervisor/default_baserow_env.sh
-index d27ba5d42..c4f4ac16b 100755
+index 5e4453f10..2a88d905d 100755
 --- a/supervisor/default_baserow_env.sh
 +++ b/supervisor/default_baserow_env.sh
-@@ -70,6 +70,7 @@ export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-$DEFAULT_DJANGO_SETTINGS
+@@ -71,6 +71,7 @@ export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-$DEFAULT_DJANGO_SETTINGS
  export BASEROW_WEB_FRONTEND_STARTUP_COMMAND="${BASEROW_WEB_FRONTEND_STARTUP_COMMAND:-$DEFAULT_WEB_FRONTEND_STARTUP_COMMAND}"
  export BASEROW_BACKEND_STARTUP_COMMAND="${BASEROW_BACKEND_STARTUP_COMMAND:-$DEFAULT_BACKEND_STARTUP_COMMAND}"
  export BASEROW_CELERY_WORKER_STARTUP_COMMAND="${BASEROW_CELERY_WORKER_STARTUP_COMMAND:-$DEFAULT_CELERY_WORKER_STARTUP_COMMAND}"
@@ -185,28 +137,23 @@ index 0856cd2fc..a2d9f7918 100644
  user=%(ENV_DOCKER_USER)s
  directory=/baserow/backend
 diff --git a/web-frontend/config/nuxt.config.base.js b/web-frontend/config/nuxt.config.base.js
-index fbad0570f..9bbb00f7f 100644
+index cc9bb704a..df34aa407 100644
 --- a/web-frontend/config/nuxt.config.base.js
 +++ b/web-frontend/config/nuxt.config.base.js
-@@ -35,6 +35,7 @@ export default function (
-     modules,
-     buildModules: ['@nuxtjs/stylelint-module'],
+@@ -41,6 +41,7 @@ export default function (
+       '@nuxtjs/composition-api/module',
+     ],
      sentry: {
 +      dsn: 'https://33f709910b214ed282315bd91344bae0@o968582.ingest.sentry.io/6742673',
        clientIntegrations: {
          Dedupe: {},
          ExtraErrorData: {},
 diff --git a/web-frontend/modules/core/assets/scss/components/auth.scss b/web-frontend/modules/core/assets/scss/components/auth.scss
-index 209e09580..2faf0e431 100644
+index 59abdbc91..71efdc4a2 100644
 --- a/web-frontend/modules/core/assets/scss/components/auth.scss
 +++ b/web-frontend/modules/core/assets/scss/components/auth.scss
-@@ -12,11 +12,10 @@
- }
- 
- .auth__logo {
--  height: 16px;
--  margin-bottom: 48px;
-+  margin-bottom: 20px;
+@@ -20,7 +20,7 @@
+   @extend %mb-24;
  
    & img {
 -    height: 100%;
@@ -238,7 +185,7 @@ index 5060281fa..aabcd5ac1 100644
    </a>
  </template>
 diff --git a/web-frontend/modules/core/components/auth/Login.vue b/web-frontend/modules/core/components/auth/Login.vue
-index 5ef8733e8..0f38acc92 100644
+index 8c0a3d997..321a684a3 100644
 --- a/web-frontend/modules/core/components/auth/Login.vue
 +++ b/web-frontend/modules/core/components/auth/Login.vue
 @@ -6,7 +6,7 @@
@@ -249,106 +196,129 @@ index 5ef8733e8..0f38acc92 100644
 +            <img src="@baserow/modules/core/static/img/vocabai_banner.png" alt="" />
            </nuxt-link>
          </div>
-         <div class="auth__head">
+         <h1 class="auth__head-title">{{ $t('login.title') }}</h1>
 diff --git a/web-frontend/modules/core/components/dashboard/DashboardHelp.vue b/web-frontend/modules/core/components/dashboard/DashboardHelp.vue
-index a5f3438f5..139e881c0 100644
+index c360b5add..358d49a4e 100644
 --- a/web-frontend/modules/core/components/dashboard/DashboardHelp.vue
 +++ b/web-frontend/modules/core/components/dashboard/DashboardHelp.vue
-@@ -1,65 +1,13 @@
+@@ -1,78 +1,14 @@
  <template>
-   <div class="dashboard__help">
--    <div class="dashboard__help-title">{{ $t('dashboard.alertTitle') }}</div>
+-  <Alert
+-    v-if="displayAlert"
+-    type="blank"
+-    close-button
+-    position="bottom"
+-    :width="396"
+-    @close="handleAlertClose"
+-  >
+-    <template #image
+-      ><img
+-        src="@baserow/modules/core/assets/images/dashboard_alert_image.png"
+-        srcset="
+-          @baserow/modules/core/assets/images/dashboard_alert_image@2x.png 2x
+-        "
+-      />
+-    </template>
+-    <template #title
+-      ><h4>{{ $t('dashboard.alertTitle') }}</h4></template
+-    >
+-    <p>{{ $t('dashboard.alertText') }}</p>
+-    <template #actions>
+-      <Button
+-        tag="a"
+-        href="https://gitlab.com/baserow/baserow"
+-        target="_blank"
+-        rel="noopener noreferrer"
+-        type="secondary"
+-        icon="baserow-icon-gitlab"
+-      >
+-        {{ $t('dashboard.starOnGitlab') }}</Button
+-      >
+-      <ButtonIcon
+-        v-tooltip="$t('dashboard.shareOnTwitter')"
+-        tag="a"
+-        tooltip-position="top"
+-        :href="`https://twitter.com/intent/tweet?url=https://baserow.io&hashtags=opensource,nocode,database,baserow&text=${encodeURI(
+-          $t('dashboard.tweetContent')
+-        )}`"
+-        target="_blank"
+-        rel="noopener noreferrer"
+-        icon="baserow-icon-twitter"
+-      ></ButtonIcon>
+-      <ButtonIcon
+-        v-tooltip="$t('dashboard.shareOnReddit')"
+-        tag="a"
+-        tooltip-position="top"
+-        icon="baserow-icon-reddit"
+-        :href="
+-          'https://www.reddit.com/submit?url=https://baserow.io&title=' +
+-          encodeURI($t('dashboard.redditTitle'))
+-        "
+-        target="_blank"
+-        rel="noopener noreferrer"
+-      ></ButtonIcon>
+-      <ButtonIcon
+-        v-tooltip="$t('dashboard.shareOnFacebook')"
+-        tag="a"
+-        tooltip-position="top"
+-        icon="baserow-icon-facebook"
+-        href="https://www.facebook.com/sharer/sharer.php?u=https://baserow.io"
+-        target="_blank"
+-        rel="noopener noreferrer"
+-      ></ButtonIcon>
+-      <ButtonIcon
+-        v-tooltip="$t('dashboard.shareOnLinkedIn')"
+-        tag="a"
+-        tooltip-position="top"
+-        icon="baserow-icon-linkedin"
+-        href="https://www.linkedin.com/sharing/share-offsite/?url=https://baserow.io"
+-        target="_blank"
+-        rel="noopener noreferrer"
+-      ></ButtonIcon>
+-    </template>
+-  </Alert>
++  <div class="dashboard__help">
 +    <img src="@baserow/modules/core/static/img/vocabai_banner.png" alt="" style="height: 80px;"/>
-     <p class="dashboard__help-description">
--      {{ $t('dashboard.alertText') }}
++    <p class="dashboard__help-description">
 +      Introducing <b>Vocab.Ai</b> - The revolutionary language learning spreadsheet designed to supercharge your vocabulary and sentence mastery!
 +      <br/>
 +      Need help ? <a href="https://lucw.medium.com/unlock-the-power-of-pinyin-vocab-ais-edc5db83a1a9" target="_blank">Chinese and Pinyin tutorial</a>
 +      <br/>
 +      <i>note: Vocab.Ai is based on open-source database <a href="https://baserow.io" target="_blank">Baserow</a></i>
-     </p>
--    <Button
--      type="primary"
--      icon="baserow-icon-gitlab"
--      tag="a"
--      href="https://gitlab.com/baserow/baserow"
--      target="_blank"
--      rel="noopener noreferrer"
--    >
--      {{ $t('dashboard.starOnGitlab') }}
--    </Button>
--    <Button
--      v-tooltip="$t('dashboard.shareOnTwitter')"
--      type="primary"
--      icon="baserow-icon-twitter"
--      tag="a"
--      :href="`https://twitter.com/intent/tweet?url=https://baserow.io&hashtags=opensource,nocode,database,baserow&text=${encodeURI(
--        $t('dashboard.tweetContent')
--      )}`"
--      target="_blank"
--      rel="noopener noreferrer"
--    >
--    </Button>
--    <Button
--      v-tooltip="$t('dashboard.shareOnReddit')"
--      type="primary"
--      tag="a"
--      icon="baserow-icon-reddit"
--      :href="
--        'https://www.reddit.com/submit?url=https://baserow.io&title=' +
--        encodeURI($t('dashboard.redditTitle'))
--      "
--      target="_blank"
--      rel="noopener noreferrer"
--    >
--    </Button>
--    <Button
--      v-tooltip="$t('dashboard.shareOnFacebook')"
--      type="primary"
--      tag="a"
--      icon="baserow-icon-facebook"
--      href="https://www.facebook.com/sharer/sharer.php?u=https://baserow.io"
--      target="_blank"
--      rel="noopener noreferrer"
--    >
--    </Button>
--    <Button
--      v-tooltip="$t('dashboard.shareOnLinkedIn')"
--      type="primary"
--      tag="a"
--      icon="baserow-icon-linkedin"
--      href="https://www.linkedin.com/sharing/share-offsite/?url=https://baserow.io"
--      target="_blank"
--      rel="noopener noreferrer"
--      class="button button--primary dashboard__help-button"
--    >
--    </Button>
-   </div>
++    </p>
++  </div>
  </template>
  
+ <script>
 diff --git a/web-frontend/modules/core/head.js b/web-frontend/modules/core/head.js
-index 065c1e34e..5ba1f791b 100644
+index a20ca13fa..5ba1f791b 100644
 --- a/web-frontend/modules/core/head.js
 +++ b/web-frontend/modules/core/head.js
 @@ -1,6 +1,6 @@
  export default {
 -  title: 'Baserow',
--  titleTemplate: '%s // Baserow',
+-  titleTemplate: '%s | Baserow',
 +  title: 'Vocab Words',
 +  titleTemplate: '%s // Vocab Words',
    meta: [
      { charset: 'utf-8' },
      {
 diff --git a/web-frontend/modules/core/plugins/posthog.js b/web-frontend/modules/core/plugins/posthog.js
-index 0253b8649..5f3c243d5 100644
+index e87e94aa8..2820da435 100644
 --- a/web-frontend/modules/core/plugins/posthog.js
 +++ b/web-frontend/modules/core/plugins/posthog.js
-@@ -31,7 +31,7 @@ export default function ({ app: { router, $config, store } }, inject) {
+@@ -31,12 +31,8 @@ export default function ({ app: { router, $config, store } }, inject) {
+       // Check if the user identification on every page route because they could
        // have changed accounts. This keeps the Posthog code isolated from the
        // authenticated system.
-       if (isAuthenticated && userId !== posthog.get_distinct_id()) {
+-      if (
+-        isAuthenticated &&
+-        userId &&
+-        userId.toString() !== posthog.get_distinct_id()
+-      ) {
 -        posthog.identify(userId, { user_email: userEmail })
++      if (isAuthenticated && userId !== posthog.get_distinct_id()) {
 +        posthog.identify(userEmail, { user_email: userEmail })
        }
  
-       // Note: this might also be a good place to call posthog.register(...) in
+       // Some pages must not be tracked like the ones that can expose a sensitive token.
