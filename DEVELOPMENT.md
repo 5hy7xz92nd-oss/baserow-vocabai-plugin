@@ -86,15 +86,15 @@ git push --set-upstream origin baserow-vocabai-patch-1.19.1
 # Updating to a newer baserow release
 ```
 cookiecutter gl:bramw/baserow --directory plugin-boilerplate
-# provide name baserow-plugin-1-13-2
+# provide name baserow-plugin-1-33-4
 ```
 then, compare contents in `baserow-plugin-1-13-2` with existing plugin files.
 
 ```
 # compare top level
-diff --color=always -ur baserow-vocabai-plugin baserow-plugin-1-15-2   | less -r
+diff --color=always -ur baserow-vocabai-plugin baserow-plugin-1-33-4   | less -r
 # compare plugin directory
-diff --color=always -ur baserow-vocabai-plugin/plugins/baserow_vocabai_plugin/ baserow-plugin-1-26-1/plugins/baserow_plugin_1_26_1/   | less -r
+diff --color=always -ur code/python/baserow-vocabai-plugin/plugins/baserow_vocabai_plugin/ src/baserow-plugin-1-33-4/plugins/baserow_plugin_1_33_4/   | less -r
 ```
 
 * mass-replace `1.12.0` with `1.19.1`
