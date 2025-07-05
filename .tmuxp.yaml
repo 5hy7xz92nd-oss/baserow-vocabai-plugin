@@ -11,6 +11,7 @@ windows:
   focus: true
 - window_name: logs
 - window_name: logs_inspect
+- window_name: ai
 - window_name: git
 - window_name: tests
 - window_name: patches
