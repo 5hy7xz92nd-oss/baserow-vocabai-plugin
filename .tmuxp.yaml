@@ -3,7 +3,7 @@ start_directory: ./ # load session relative to config location (project root).
 shell_command_before:
   - cmd: source env.dev.sh
   - cmd: source ${SECRETS_DIR}/cloudlanguagetools/cloudlanguagetools_core_secret.sh
-  - cmd: source ${SECRETS_DIR}/vocab_words/dev.sh
+  # - cmd: source ${SECRETS_DIR}/vocab_words/dev.sh
   - cmd: source .bash_aliases
   - cmd: clear
 windows:
