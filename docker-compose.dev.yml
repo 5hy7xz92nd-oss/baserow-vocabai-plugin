@@ -52,6 +52,8 @@ services:
       # directly into the image instead of whatever is on your local filesystem.
       - /baserow/data/plugins/baserow_vocabai_plugin/web-frontend/node_modules
       - ./plugins/baserow_vocabai_plugin/web-frontend:/baserow/data/plugins/baserow_vocabai_plugin/web-frontend
+      # map the test env file for django tests
+      - ./.env.testing:/baserow/backend/.env.testing
     # Open stdin and tty so when attaching key input works as expected.
     stdin_open: true
     tty: true

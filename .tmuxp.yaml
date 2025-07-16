@@ -10,11 +10,9 @@ windows:
 - window_name: docker
   focus: true
 - window_name: logs
-- window_name: logs_inspect
 - window_name: ai
 - window_name: git
 - window_name: tests
-- window_name: patches
   panes:
     - shell_command: 
       - cd ~/code/python/baserow-vocabai-patches
