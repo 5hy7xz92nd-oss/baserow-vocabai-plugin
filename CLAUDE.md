@@ -34,8 +34,7 @@ docker-compose -f docker-compose.dev.yml up --build
 docker logs --since 1h -f baserow-vocabai-plugin
 
 # Run backend tests in container
-docker compose -f docker-compose.dev.yml exec -T baserow-vocabai-plugin /baserow/supervisor/docker-postgres-setup.sh run <<< "ALTER USER baserow CREATEDB;"
-docker compose -f docker-compose.dev.yml exec baserow-vocabai-plugin /baserow.sh backend-cmd bash -c "pytest --reuse-db /baserow/data/plugins/baserow_vocabai_plugin/backend/tests"
+docker compose -f docker-compose.dev.yml exec baserow-vocabai-plugin /baserow.sh backend-cmd bash -c "pytest baserow/data/plugins/baserow_vocabai_plugin/backend/tests"
 
 # Run tests with real CloudLanguageTools services
 CLOUDLANGUAGETOOLS_CORE_TEST_SERVICES=yes pytest baserow_vocabai_plugin/cloudlanguagetools/test_clt.py

@@ -35,12 +35,6 @@ following logs:
 
 ## running tests
 
-### make sure to give database users correct permissions
-```
-docker compose -f docker-compose.dev.yml exec -T baserow-vocabai-plugin /baserow/supervisor/docker-postgres-setup.sh run <<< "ALTER USER baserow CREATEDB;"
-```
-(from https://baserow.io/docs/plugins/boilerplate)
-
 ### attach to docker container
 
 ```
