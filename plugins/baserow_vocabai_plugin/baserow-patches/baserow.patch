@@ -1,10 +1,10 @@
 diff --git a/.bash_aliases b/.bash_aliases
 new file mode 100644
-index 000000000..815c67c18
+index 000000000..4349caf18
 --- /dev/null
 +++ b/.bash_aliases
 @@ -0,0 +1 @@
-+alias regenerate_baserow_patch='git diff baserow-1.33.4..baserow-vocabai-patch-1.33.4 | sed "s:/:/:g" > ~/python/baserow-vocabai-plugin/plugins/baserow_vocabai_plugin/baserow-patches/baserow.patch'
++alias regenerate_baserow_patch='git diff baserow-1.33.4..baserow-vocabai-patch-1.33.4 | sed "s:/:/:g" > ~/code/python/baserow-vocabai-plugin/plugins/baserow_vocabai_plugin/baserow-patches/baserow.patch'
 diff --git a/backend/docker/docker-entrypoint.sh b/backend/docker/docker-entrypoint.sh
 index aa6e1cb5c..bfa80a22a 100755
 --- a/backend/docker/docker-entrypoint.sh
@@ -35,18 +35,10 @@ index 082f2c2cd..a20409be3 100644
      SECRET_KEY = test
      BASEROW_JWT_SIGNING_KEY = test
 diff --git a/backend/src/baserow/config/settings/base.py b/backend/src/baserow/config/settings/base.py
-index dc121dd86..ed0452d80 100644
+index dc121dd86..05b009b05 100644
 --- a/backend/src/baserow/config/settings/base.py
 +++ b/backend/src/baserow/config/settings/base.py
-@@ -7,6 +7,7 @@ from decimal import Decimal
- from ipaddress import ip_network
- from pathlib import Path
- from urllib.parse import urljoin, urlparse
-+import pprint
- 
- from django.core.exceptions import ImproperlyConfigured
- 
-@@ -181,6 +182,8 @@ CELERY_TASK_ROUTES = {
+@@ -181,6 +181,8 @@ CELERY_TASK_ROUTES = {
      "baserow.core.usage.tasks": {"queue": BASEROW_GROUP_STORAGE_USAGE_QUEUE},
      "baserow.contrib.database.table.tasks.run_row_count_job": {"queue": "export"},
      "baserow.core.jobs.tasks.clean_up_jobs": {"queue": "export"},
@@ -55,25 +47,16 @@ index dc121dd86..ed0452d80 100644
  }
  CELERY_SOFT_TIME_LIMIT = 60 * 5  # 5 minutes
  CELERY_TIME_LIMIT = CELERY_SOFT_TIME_LIMIT + 60  # 60 seconds
-@@ -232,6 +235,9 @@ else:
-             "PASSWORD": os.getenv("DATABASE_PASSWORD", "baserow"),
-             "HOST": os.getenv("DATABASE_HOST", "db"),
-             "PORT": os.getenv("DATABASE_PORT", "5432"),
-+            "TEST": {
-+                "NAME": os.getenv("DATABASE_TEST_NAME", default="vocabai_words_test"),
-+            },
-         }
-     }
-     if "DATABASE_OPTIONS" in os.environ:
 diff --git a/backend/src/baserow/core/models.py b/backend/src/baserow/core/models.py
-index bf7ec4373..a4a0d16ca 100755
+index bf7ec4373..d97857af0 100755
 --- a/backend/src/baserow/core/models.py
 +++ b/backend/src/baserow/core/models.py
-@@ -216,7 +216,7 @@ class UserProfile(models.Model):
+@@ -216,7 +216,8 @@ class UserProfile(models.Model):
      # TODO Remove null=True in a future release.
      email_verified = models.BooleanField(null=True, default=False)
      # TODO Remove null=True in a future release.
 -    completed_onboarding = models.BooleanField(null=True, default=False)
++    # vocab-words-patch: we don't want to do onboarding for new users
 +    completed_onboarding = models.BooleanField(null=True, default=True)
      completed_guided_tours = ArrayField(
          base_field=models.TextField(),
@@ -162,17 +145,17 @@ index 59abdbc91..71efdc4a2 100644
  }
  
 diff --git a/web-frontend/modules/core/components/ExternalLinkBaserowLogo.vue b/web-frontend/modules/core/components/ExternalLinkBaserowLogo.vue
-index 5060281fa..aabcd5ac1 100644
+index 5060281fa..fba3d37e8 100644
 --- a/web-frontend/modules/core/components/ExternalLinkBaserowLogo.vue
 +++ b/web-frontend/modules/core/components/ExternalLinkBaserowLogo.vue
 @@ -1,12 +1,13 @@
  <template>
    <a
 -    href="https://baserow.io"
-+    href="https://app.vocab.ai"
++    href="https://words.vocab.ai"
      target="_blank"
 -    title="Baserow - open source no-code database tool and Airtable alternative"
-+    title="Vocab.Ai - the Language Learning Spreadsheet"
++    title="Vocab Words - the Language Learning Spreadsheet"
    >
 -    <Logo
 -      height="14"
