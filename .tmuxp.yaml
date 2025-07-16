@@ -14,8 +14,3 @@ windows:
 - window_name: ai
 - window_name: git
 - window_name: tests
-  panes:
-    - shell_command: 
-      - cd ~/code/python/baserow-vocabai-patches
-      - source .bash_aliases
-      - clear
