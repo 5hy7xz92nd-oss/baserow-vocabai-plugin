@@ -6,12 +6,62 @@ import pprint
 import json
 import logging
 from django.shortcuts import reverse
+from django.core.management import call_command
 from rest_framework.status import HTTP_200_OK
 
 from baserow_vocabai_plugin.cloudlanguagetools import clt_interface, quotas
 import cloudlanguagetools.languages
 
 logger = logging.getLogger(__name__)
+
+
+def ensure_plugin_tables_exist():
+    """
+    Ensure all plugin models are created in the test database.
+    Django test database doesn't include plugin migrations by default.
+    """
+    from django.db import connection
+    from baserow_vocabai_plugin.fields.vocabai_models import (
+        LanguageField,
+        TranslationField, 
+        TransliterationField,
+        DictionaryLookupField,
+        ChineseRomanizationField,
+        VocabAiLanguageData,
+        VocabAiUsage
+    )
+    
+    # List of all models that need to be created
+    models_to_check = [
+        ('baserow_vocabai_plugin_languagefield', LanguageField),
+        ('baserow_vocabai_plugin_translationfield', TranslationField),
+        ('baserow_vocabai_plugin_transliterationfield', TransliterationField),
+        ('baserow_vocabai_plugin_dictionarylookupfield', DictionaryLookupField),
+        ('baserow_vocabai_plugin_chineseromanizationfield', ChineseRomanizationField),
+        ('baserow_vocabai_plugin_vocabailanguagedata', VocabAiLanguageData),
+        ('baserow_vocabai_plugin_vocabaiusage', VocabAiUsage),
+    ]
+    
+    # Check which tables exist and create missing ones
+    with connection.cursor() as cursor:
+        for table_name, model_class in models_to_check:
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT 1 FROM information_schema.tables 
+                    WHERE table_name = %s
+                )
+            """, [table_name])
+            table_exists = cursor.fetchone()[0]
+            
+            if not table_exists:
+                # Create the table if it doesn't exist
+                with connection.schema_editor() as schema_editor:
+                    try:
+                        schema_editor.create_model(model_class)
+                        logger.info(f"Created table {table_name}")
+                    except Exception as e:
+                        logger.warning(f"Failed to create table {table_name}: {e}")
+                        # Continue with other tables
 
 
 # tests which need to be run with CLOUDLANGUAGETOOLS_CORE_TEST_SERVICES=no
@@ -32,6 +82,9 @@ def test_language_data(api_client, data_fixture):
     assert os.environ['CLOUDLANGUAGETOOLS_CORE_TEST_SERVICES'] == 'yes'
 
     user, token = data_fixture.create_user_and_token()
+
+    # Ensure plugin models are created in test database
+    ensure_plugin_tables_exist()
 
     # update language data first
     clt_interface.update_language_data()
@@ -55,6 +108,9 @@ def test_quotas(api_client, data_fixture):
     assert os.environ['CLOUDLANGUAGETOOLS_CORE_TEST_SERVICES'] == 'yes'
 
     user, token = data_fixture.create_user_and_token()
+
+    # Ensure plugin models are created in test database
+    ensure_plugin_tables_exist()
 
     # update language data first
     clt_interface.update_language_data()
@@ -93,6 +149,9 @@ def test_add_language_field(api_client, data_fixture):
     assert os.environ['CLOUDLANGUAGETOOLS_CORE_TEST_SERVICES'] == 'yes'
 
     user, token = data_fixture.create_user_and_token()
+
+    # Ensure plugin models are created in test database
+    ensure_plugin_tables_exist()
 
     # update language data first
     clt_interface.update_language_data()    
@@ -196,6 +255,9 @@ def test_pinyin(api_client, data_fixture):
 
     logger.info(f'starting test_pinyin')
     user, token = data_fixture.create_user_and_token()
+
+    # Ensure plugin models are created in test database
+    ensure_plugin_tables_exist()
 
     ROMANIZATION_FORMAT_REVISION = 3
 
@@ -494,6 +556,9 @@ def test_create_multiple_rows(api_client, data_fixture):
     assert os.environ['CLOUDLANGUAGETOOLS_CORE_TEST_SERVICES'] == 'yes'
 
     user, token = data_fixture.create_user_and_token()
+
+    # Ensure plugin models are created in test database
+    ensure_plugin_tables_exist()
 
     # update language data first
     clt_interface.update_language_data()    

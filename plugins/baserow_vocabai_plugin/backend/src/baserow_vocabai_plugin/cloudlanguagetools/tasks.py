@@ -82,7 +82,8 @@ def process_row_id_bucket_iterate_rows(table_id, row_id_list):
             user=None,
             table=table,
             model=table_model,
-            updated_field_ids=None,
+            updated_field_ids=[],
+            dependant_fields=[]
         )
 
     for row in row_list:
@@ -96,7 +97,8 @@ def process_row_id_bucket_iterate_rows(table_id, row_id_list):
             table=table,
             model=table_model,
             before_return=before_return,
-            updated_field_ids=None
+            updated_field_ids=[],
+            dependant_fields=[]
         )
     else:
         # refresh whole table
