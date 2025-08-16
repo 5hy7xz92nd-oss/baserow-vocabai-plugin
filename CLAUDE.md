@@ -4,22 +4,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-### Backend Development
-From `/plugins/baserow_vocabai_plugin/backend/`:
-- `make lint` - Run linting (flake8, black, bandit)
-- `make format` - Format code with black
-- `make test` - Run tests
-- `make test-parallel` - Run tests in parallel
-
-### Frontend Development
-From `/plugins/baserow_vocabai_plugin/web-frontend/`:
-- `yarn eslint` - Lint JavaScript/Vue files
-- `yarn stylelint` - Lint SCSS files  
-- `yarn lint` - Run all linters
-- `yarn dev` - Start development server
-- `yarn build` - Build for production
-- `yarn start` - Start production server
-
 ### Docker Development
 ```bash
 # Set required environment variables first
