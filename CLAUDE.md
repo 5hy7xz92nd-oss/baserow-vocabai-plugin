@@ -73,3 +73,4 @@ The plugin supports multiple deployment modes via different docker-compose files
 - `docker-compose.yml` - Simple single container
 - `docker-compose.dev.yml` - Development with hot reloading
 - `docker-compose.multi-service.yml` - Production with separate services
+- to run tests, use the `test` alias defined in @.bash_aliases
