@@ -28,10 +28,6 @@ import logging
 import pprint
 logger = logging.getLogger(__name__)
 
-# see https://community.baserow.io/t/anonymous-api-access-or-universal-token/788/18 for background
-# the idea suggested by Nigel was to enhance Update Collector to run the lambdas at the end, at the right time
-# however this will require a baserow update, and it's more complicated to do when this code is running as a baserow plugin.
-USE_ENHANCED_UPDATE_COLLECTOR = False
 
 class LanguageTextField(models.TextField):
     pass
@@ -252,27 +248,7 @@ class TranslationFieldType(TransformationFieldType):
         via_path_to_starting_table,
     ):
 
-        if USE_ENHANCED_UPDATE_COLLECTOR:
-            # as per nigel, it's preferrable to use the update collector to do the update at the end
-            def translate_rows(rows):
-                source_language = field.source_field.language  
-                target_language = field.target_language
-                translation_service = field.service          
-                source_internal_field_name = f'field_{field.source_field.id}'
-                target_internal_field_name = f'field_{field.id}'
-                for row in rows:
-                    text = getattr(row, source_internal_field_name)
-                    if text != None:
-                        translated_text = clt_interface.get_translation(text, source_language, target_language, translation_service)
-                        setattr(row, target_internal_field_name, translated_text)
-
-            update_collector.add_field_with_pending_update_function(
-                field,
-                update_function=translate_rows,
-                via_path_to_starting_table=via_path_to_starting_table,
-            )       
-        else:
-            self.process_transformation(field, starting_row)
+        self.process_transformation(field, starting_row)
 
         ViewHandler().field_value_updated(field)     
 
@@ -368,27 +344,7 @@ class TransliterationFieldType(TransformationFieldType):
         via_path_to_starting_table,
     ):
 
-
-        if USE_ENHANCED_UPDATE_COLLECTOR:
-
-            def transliterate_rows(rows):
-                transliteration_id = field.transliteration_id
-                source_internal_field_name = f'field_{field.source_field.id}'
-                target_internal_field_name = f'field_{field.id}'
-                for row in rows:
-                    text = getattr(row, source_internal_field_name)
-                    if text != None:
-                        transliterated_text = clt_interface.get_transliteration(text, transliteration_id)
-                        setattr(row, target_internal_field_name, transliterated_text)
-
-            update_collector.add_field_with_pending_update_function(
-                field,
-                update_function=transliterate_rows,
-                via_path_to_starting_table=via_path_to_starting_table,
-            )       
-
-        else:
-            self.process_transformation(field, starting_row)
+        self.process_transformation(field, starting_row)
 
         ViewHandler().field_value_updated(field)     
 
@@ -481,24 +437,7 @@ class DictionaryLookupFieldType(TransformationFieldType):
         via_path_to_starting_table,
     ):
 
-        if USE_ENHANCED_UPDATE_COLLECTOR:
-            def perform_dictionary_lookup_rows(rows):
-                lookup_id = field.lookup_id
-                source_internal_field_name = f'field_{field.source_field.id}'
-                target_internal_field_name = f'field_{field.id}'
-                for row in rows:
-                    text = getattr(row, source_internal_field_name)
-                    if text != None:
-                        lookup_result = clt_interface.get_dictionary_lookup(text, lookup_id)
-                        setattr(row, target_internal_field_name, lookup_result)
-
-            update_collector.add_field_with_pending_update_function(
-                field,
-                update_function=perform_dictionary_lookup_rows,
-                via_path_to_starting_table=via_path_to_starting_table,
-            )       
-        else:
-            self.process_transformation(field, starting_row)
+        self.process_transformation(field, starting_row)
 
         ViewHandler().field_value_updated(field)     
 
