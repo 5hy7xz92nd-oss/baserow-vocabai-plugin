@@ -271,19 +271,7 @@ class TranslationFieldType(TransformationFieldType):
         field_cache: "FieldCache",
         via_path_to_starting_table,
     ):
-
         self.process_transformation(field, starting_row)
-
-        # ViewHandler().field_value_updated(field)     
-
-        # super().row_of_dependency_updated(
-        #     field,
-        #     starting_row,
-        #     update_collector,
-        #     field_cache,
-        #     via_path_to_starting_table,
-        # )        
-
 
     def update_all_rows(self, field):
         logger.info(f'update_all_rows')
@@ -367,18 +355,7 @@ class TransliterationFieldType(TransformationFieldType):
         field_cache: "FieldCache",
         via_path_to_starting_table,
     ):
-
         self.process_transformation(field, starting_row)
-
-        # ViewHandler().field_value_updated(field)     
-
-        # super().row_of_dependency_updated(
-        #     field,
-        #     starting_row,
-        #     update_collector,
-        #     field_cache,
-        #     via_path_to_starting_table,
-        # )        
 
 
     def update_all_rows(self, field):
@@ -460,19 +437,7 @@ class DictionaryLookupFieldType(TransformationFieldType):
         field_cache,
         via_path_to_starting_table,
     ):
-
         self.process_transformation(field, starting_row)
-
-        # ViewHandler().field_value_updated(field)     
-
-        # super().row_of_dependency_updated(
-        #     field,
-        #     starting_row,
-        #     update_collector,
-        #     field_cache,
-        #     via_path_to_starting_table,
-        # )        
-
 
     def update_all_rows(self, field):
         logger.info(f'update_all_rows')
@@ -589,19 +554,7 @@ class ChineseRomanizationFieldType(TransformationFieldType):
         via_path_to_starting_table,
     ):
         logger.info('row_of_dependency_updated')
-
         self.process_transformation(field, starting_row)
-
-        # ViewHandler().field_value_updated(field)     
-
-        # super().row_of_dependency_updated(
-        #     field,
-        #     starting_row,
-        #     update_collector,
-        #     field_cache,
-        #     via_path_to_starting_table,
-        # )        
-
 
     def update_all_rows(self, field):
         logger.info(f'update_all_rows')
