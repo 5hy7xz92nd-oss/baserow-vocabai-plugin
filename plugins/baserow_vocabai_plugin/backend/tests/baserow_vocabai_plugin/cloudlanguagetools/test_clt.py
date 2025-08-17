@@ -234,11 +234,22 @@ def test_add_language_field(api_client, data_fixture):
     )
     response_row = response.json()
     assert response.status_code == HTTP_200_OK, pprint.pformat(response.content)
+    table_row_id = response_row['id']
 
-    logger.info(f'received response: {pprint.pformat(response_row)}')
+    # load the row , it should contain the french text
+    # ================================================
+    
+    logger.info('retrieving row')
+    response = api_client.get(
+        reverse("api:database:rows:item", kwargs={"table_id": table_id, 'row_id': table_row_id}),
+        format="json",
+        HTTP_AUTHORIZATION=f"JWT {token}",
+    )
+    assert response.status_code == HTTP_200_OK
+    retrieved_row = response.json()
 
-    assert response_row[f'field_{french_field_id}'] == 'bonjour'
-    english_field_data = json.loads(response_row[f'field_{english_trans_field_id}'])
+    assert retrieved_row[f'field_{french_field_id}'] == 'bonjour'
+    english_field_data = json.loads(retrieved_row[f'field_{english_trans_field_id}'])
     assert english_field_data == {
         "text": "bonjour", "from_language_key": "fr", "to_language_key": 'en'
     }
