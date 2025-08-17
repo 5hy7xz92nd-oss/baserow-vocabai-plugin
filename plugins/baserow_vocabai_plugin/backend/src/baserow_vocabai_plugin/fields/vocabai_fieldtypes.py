@@ -7,6 +7,7 @@ from rest_framework import serializers
 from baserow.contrib.database.fields.registries import FieldType
 from baserow.contrib.database.fields.models import Field, TextField
 from baserow.contrib.database.views.handler import ViewHandler
+from baserow.contrib.database.rows.handler import RowHandler
 
 from baserow.contrib.database.fields.dependencies.models import FieldDependency
 from baserow.contrib.database.table.models import TableModelQuerySet
@@ -96,6 +97,16 @@ class TransformationFieldType(FieldType):
         transformed_value = self.transform_value(field, source_value, usage_user_id)
         return transformed_value
 
+    def get_usage_user(self, field):
+        # find the admin in the group
+        workspace = field.table.database.workspace
+
+        admin_users = WorkspaceUser.objects.filter(workspace_id=workspace.id, permissions=WORKSPACE_USER_PERMISSION_ADMIN)
+        for admin_user in admin_users:
+            logger.info(f'admin_user: {admin_user.user}')
+            return admin_user.user
+        raise RuntimeError(f'could not find user when computing usage')
+
     def get_usage_user_id(self, field):
         """get the user_id that this usage will be associated with"""
 
@@ -124,15 +135,28 @@ class TransformationFieldType(FieldType):
             # we got a single TableModel, transform it into a list of one element
             row_list = [starting_row]
 
-        rows_to_bulk_update = []
+        table = field.table
+        model = table.get_model()
+
+        # get the user we should attribute the transformation to
+        user = self.get_usage_user(field)
+
         for row in row_list:
             source_value = getattr(row, source_internal_field_name)
-            transformed_value = self.get_transformed_value(field, source_value, self.get_usage_user_id(field))
-            setattr(row, target_internal_field_name, transformed_value)
-            rows_to_bulk_update.append(row)
+            # run the CLT transformation
+            transformed_value = self.get_transformed_value(field, source_value, user.id)
 
-        model = field.table.get_model()
-        model.objects.bulk_update(rows_to_bulk_update, fields=[field.db_column])
+            # this call seems to properly trigger the websocket update
+            # as of 2025/08/17 test_clt.py is still not working but it may be due to asynchronous update
+            RowHandler().update_row_by_id(
+                user,
+                table,
+                row.id,
+                {field.db_column: transformed_value},
+                model=model,
+                values_already_prepared=True,
+            )            
+
 
 
     def row_of_dependency_deleted(
@@ -250,15 +274,15 @@ class TranslationFieldType(TransformationFieldType):
 
         self.process_transformation(field, starting_row)
 
-        ViewHandler().field_value_updated(field)     
+        # ViewHandler().field_value_updated(field)     
 
-        super().row_of_dependency_updated(
-            field,
-            starting_row,
-            update_collector,
-            field_cache,
-            via_path_to_starting_table,
-        )        
+        # super().row_of_dependency_updated(
+        #     field,
+        #     starting_row,
+        #     update_collector,
+        #     field_cache,
+        #     via_path_to_starting_table,
+        # )        
 
 
     def update_all_rows(self, field):
@@ -346,15 +370,15 @@ class TransliterationFieldType(TransformationFieldType):
 
         self.process_transformation(field, starting_row)
 
-        ViewHandler().field_value_updated(field)     
+        # ViewHandler().field_value_updated(field)     
 
-        super().row_of_dependency_updated(
-            field,
-            starting_row,
-            update_collector,
-            field_cache,
-            via_path_to_starting_table,
-        )        
+        # super().row_of_dependency_updated(
+        #     field,
+        #     starting_row,
+        #     update_collector,
+        #     field_cache,
+        #     via_path_to_starting_table,
+        # )        
 
 
     def update_all_rows(self, field):
@@ -439,15 +463,15 @@ class DictionaryLookupFieldType(TransformationFieldType):
 
         self.process_transformation(field, starting_row)
 
-        ViewHandler().field_value_updated(field)     
+        # ViewHandler().field_value_updated(field)     
 
-        super().row_of_dependency_updated(
-            field,
-            starting_row,
-            update_collector,
-            field_cache,
-            via_path_to_starting_table,
-        )        
+        # super().row_of_dependency_updated(
+        #     field,
+        #     starting_row,
+        #     update_collector,
+        #     field_cache,
+        #     via_path_to_starting_table,
+        # )        
 
 
     def update_all_rows(self, field):
@@ -568,15 +592,15 @@ class ChineseRomanizationFieldType(TransformationFieldType):
 
         self.process_transformation(field, starting_row)
 
-        ViewHandler().field_value_updated(field)     
+        # ViewHandler().field_value_updated(field)     
 
-        super().row_of_dependency_updated(
-            field,
-            starting_row,
-            update_collector,
-            field_cache,
-            via_path_to_starting_table,
-        )        
+        # super().row_of_dependency_updated(
+        #     field,
+        #     starting_row,
+        #     update_collector,
+        #     field_cache,
+        #     via_path_to_starting_table,
+        # )        
 
 
     def update_all_rows(self, field):

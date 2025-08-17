@@ -233,9 +233,9 @@ def test_add_language_field(api_client, data_fixture):
         HTTP_AUTHORIZATION=f"JWT {token}",
     )
     response_row = response.json()
-    assert response.status_code == HTTP_200_OK    
+    assert response.status_code == HTTP_200_OK, pprint.pformat(response.content)
 
-    pprint.pprint(response_row)
+    logger.info(f'received response: {pprint.pformat(response_row)}')
 
     assert response_row[f'field_{french_field_id}'] == 'bonjour'
     english_field_data = json.loads(response_row[f'field_{english_trans_field_id}'])
