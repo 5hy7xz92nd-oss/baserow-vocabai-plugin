@@ -1,4 +1,4 @@
-# Baserow VocabAi Plugin
+   # Baserow VocabAi Plugin
 
 ## Baserow Plugins
 
